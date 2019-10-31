@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.menu.MenuMapper" >
+
+
+
+    <select id="queryMenuList" resultType="com.fh.po.menu.Menu" >
+
+        select * from t_menu
+
+    </select>
+  <insert id="addMenu" parameterType="com.fh.po.menu.Menu">
+          <selectKey resultType="long" order="AFTER" keyProperty="id">
+              select LAST_INSERT_ID()
+          </selectKey>
+      insert into  t_menu(pId,name,type,menuurl) values(#{pId},#{name},#{type},#{menuurl})
+   </insert>
+
+    <delete id="deleteMenu" >
+        delete from t_menu where id in
+         <foreach collection="list" separator="," close=")" open="(" item="l" >
+             #{l}
+         </foreach>
+    </delete>
+
+    <update id="updateMenu" parameterType="com.fh.po.menu.Menu">
+        update t_menu set name=#{name},type=#{type},menuurl=#{menuurl} where id=#{id}
+    </update>
+
+     <delete id="deleteMenuAndRole">
+         delete from t_role_menu where menuid in
+         <foreach collection="list" separator="," close=")" open="(" item="l" >
+             #{l}
+         </foreach>
+     </delete>
+
+    <select id="queryMenuUrl" parameterType="long" resultType="string">
+           select  menuurl from t_menu tm where id in(
+      select menuid from t_role_menu where roleid in(
+        select roleid from t_user_role where userid=#{id}
+         ))  and type=1
+    </select>
+
+</mapper>

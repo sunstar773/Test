@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.product.ProductMapper" >
+   <sql id="param">
+       id ,name,price,imgurl,createDate,num,isHot,isOut,brandId
+   </sql>
+
+    <sql id="search">
+        <where>
+
+            <if test="name!=null and name!=''">
+                name like "%"#{name}"%"
+            </if>
+            <if test="minprice>0 and minprice!=null ">
+                and  price >=#{minprice}
+            </if>
+            <if test="maxprice>=minprice and maxprice!=null ">
+                and  price &lt;=#{maxprice}
+            </if>
+
+            <if test="mindate!=null">
+                and  createDate >=#{mindate}
+            </if>
+            <if test="maxdate>=mindate and mindate!=null">
+                and  createDate &lt;=#{maxdate}
+            </if>
+            <if test="s1>0 and s1!=null">
+                and  s1 =#{s1}
+            </if>
+            <if test="s2>0 and s2!=null">
+                and  s2 =#{s2}
+            </if>
+            <if test="s3>0 and s3!=null">
+                and  s3 =#{s3}
+            </if>
+        </where>
+    </sql>
+
+    <select id="queryProductCount"  resultType="java.lang.Long" parameterType="com.fh.params.product.ProductSearch">
+
+        select count(*) from t_product   p  left  join t_brand b  on p.brandId=b.id <include refid="search"/>
+    </select>
+
+    <select id="queryProductList" parameterType="com.fh.params.product.ProductSearch" resultType="com.fh.po.product.Product">
+     <!--  select t.* from (select <include refid="param"/> from t_product <include refid="search"/> order by id desc)t Limit #{start},#{length}-->
+        select t.* from (select p.id ,p.name,price,p.imgurl,createDate,num,p.isHot,isOut,b.name "brand.name", concat(c1.name,'-->',c2.name,'-->',c3.name)"selName"  from t_product p
+        left  join t_brand b  on p.brandId=b.id
+        left join t_classify  c1   on  c1.id =p.s1
+        left join t_classify  c2   on  c2.id=p.s2
+        left join t_classify  c3   on  c3.id=p.s3
+        <include refid="search"/> order by isOut,isHot,id desc )t Limit #{start},#{length}
+    </select>
+
+    <select id="querySearchProductList" parameterType="com.fh.params.product.ProductSearch" resultType="com.fh.po.product.Product">
+        select t.* from (select p.id ,p.name,price,p.imgurl,createDate,num,p.isHot,isOut,b.name brandName, concat(c1.name,'-->',c2.name,'-->',c3.name)"selName"  from t_product p
+        left  join t_brand b  on p.brandId=b.id
+        left join t_classify  c1   on  c1.id =p.s1
+        left join t_classify  c2   on  c2.id=p.s2
+        left join t_classify  c3   on  c3.id=p.s3<include refid="search"/> order by id desc)t
+    </select>
+
+    <insert id="addProduct" parameterType="com.fh.po.product.Product">
+        insert into t_product(name,price,imgurl,createDate,isHot,isOut,num,brandid,s1,s2,s3) values (#{name},#{price},#{imgurl},#{createDate},#{isHot},#{isOut},#{num},#{brandId},#{s1},#{s2},#{s3})
+    </insert>
+
+    <delete id="deleteProduct" parameterType="long">
+        delete from t_product where id=#{id}
+    </delete>
+
+    <select id="getProduct" parameterType="long" resultType="com.fh.po.product.Product">
+
+        select  id ,name,price,imgurl,createDate,num,isHot,isOut,brandId,s1,s2,s3 from t_product where id=#{id}
+    </select>
+
+
+
+    <update id="updateProduct" parameterType="com.fh.po.product.Product">
+        update t_product set name=#{name},price=#{price},imgurl=#{imgurl},createDate=#{createDate},isHot=#{isHot},isOut=#{isOut},num=#{num},brandId=#{brandId},s1=#{s1},s2=#{s2},s3=#{s3} where id=#{id}
+    </update>
+
+    <update id="updateButton" parameterType="long">
+        update t_product set isOut=2 where id=#{id}
+    </update>
+
+    <update id="updateButton1" parameterType="long">
+        update t_product set isOut=1 where id=#{id}
+    </update>
+
+    <select id="queryProductNum" resultType="com.fh.po.product.Product">
+        select * from t_product where num&lt;5
+    </select>
+
+</mapper>

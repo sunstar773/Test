@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.brand.BrandMapper" >
+
+   <sql id="search">
+        <where>
+           <if test="name!=null and name!=''">
+              name like "%"#{name}"%"
+           </if>
+        </where>
+   </sql>
+
+    <select id="queryBrandCount" resultType="java.lang.Long" parameterType="com.fh.po.brand.Brand">
+
+        select count(*) from t_brand <include refid="search"></include>
+
+    </select>
+
+    <select id="queryBrandList" parameterType="com.fh.po.brand.Brand" resultType="com.fh.po.brand.Brand">
+        select id,name,imgurl,isHot,sort  from t_brand <include refid="search"></include> order by isHot desc ,sort desc Limit #{start},#{length}
+    </select>
+
+    <insert id="addBrand" parameterType="com.fh.po.brand.Brand">
+        insert into t_brand(name,imgurl,isHot) values (#{name},#{imgurl},#{isHot})
+    </insert>
+
+    <delete id="deleteBrand" parameterType="long">
+        delete from  t_brand where id=#{id}
+    </delete>
+
+    <select id="getBrand" parameterType="long" resultType="com.fh.po.brand.Brand">
+        select id,name,imgurl,isHot from t_brand where id=#{id}
+    </select>
+
+    <update id="updateBrand" parameterType="com.fh.po.brand.Brand">
+        update t_brand set name=#{name},imgurl=#{imgurl},isHot=#{isHot} where id=#{id}
+    </update>
+   <delete id="deltBrands">
+       delete from t_brand where id in
+       <foreach collection="list" separator="," close=")" open="(" item="id">
+           #{id}
+       </foreach>
+   </delete>
+</mapper>

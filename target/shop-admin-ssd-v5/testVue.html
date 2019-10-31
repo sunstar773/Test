@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="commons/vue.js"></script>
+</head>
+<body>
+<div id="box">
+<table border="1px">
+      <tr>
+          <th>姓名</th>
+          <th>年龄</th>
+      </tr>
+    <tr v-for="u in user">
+        <td>{{u.name}}}</td>
+        <td>{{u.age}}</td>
+    </tr>
+
+</table>
+</div>
+  <script>
+      new  Vue({
+        el:"#box",
+         data:{
+            user:[{name:"张",age:13},{name:"aa",age:13}]
+         }
+      })
+
+  </script>
+
+</body>
+</html>

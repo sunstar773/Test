@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.classify.ClassifyMapper" >
+
+
+  <insert id="addClass" parameterType="com.fh.po.classify.Classify">
+          <selectKey resultType="long" order="AFTER" keyProperty="id">
+              select LAST_INSERT_ID()
+          </selectKey>
+      insert into  t_classify(pId,name) values(#{pId},#{name})
+   </insert>
+    <select id="selectClassNameById" parameterType="long" resultType="string">
+             select   concat(c1.name,'-->',c2.name,'-->',c3.name) Sname from t_product p
+left join t_classify  c1   on  c1.id =s1
+left join t_classify  c2   on  c2.id=s2
+left join t_classify  c3   on  c3.id=s3
+  where p.id=#{v}
+    </select>
+
+    <delete id="deleteClass" >
+        delete from t_classify where id in
+         <foreach collection="list" separator="," close=")" open="(" item="l" >
+             #{l}
+         </foreach>
+    </delete>
+
+    <update id="updateMenu" parameterType="com.fh.po.menu.Menu">
+        update t_menu set name=#{name},type=#{type},menuurl=#{menuurl} where id=#{id}
+    </update>
+
+
+</mapper>

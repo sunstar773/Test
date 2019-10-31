@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.role.RoleMapper" >
+
+
+
+    <select id="queryRoleCount" resultType="java.lang.Long" >
+
+        select count(*) from t_role
+
+    </select>
+
+
+    <select id="queryRoleList" resultType="com.fh.po.role.Role" parameterType="com.fh.po.role.Role">
+        select  id, name,menuids  from t_role   order by id desc Limit #{start},#{length}
+    </select>
+
+
+    <insert id="addRole" parameterType="com.fh.po.role.Role">
+            <selectKey resultType="long" order="AFTER" keyProperty="id">
+                select LAST_INSERT_ID()
+            </selectKey>
+        insert into t_role(name,menuids) values (#{name},#{ids})
+    </insert>
+
+    <delete id="deleteRole" parameterType="long">
+        delete from t_role where id=#{id}
+    </delete>
+
+    <select id="getRole" resultType="com.fh.po.role.Role" parameterType="long">
+
+        select id,name  from t_role where id=#{id}
+    </select>
+
+    <update id="updateRole" parameterType="com.fh.po.role.Role">
+        update t_role set name=#{name} where id=#{id}
+    </update>
+
+
+      <select id="queryRlist" resultType="com.fh.po.role.Role">
+
+          select id,name  from t_role
+      </select>
+
+   <insert id="addMenuToRole" parameterType="com.fh.po.menu2role.MenuToRole">
+        insert into t_role_menu(roleid,menuid) values (#{roleid},#{menuid})
+    </insert>
+
+    <select id="queryMenuNames" resultType="string" parameterType="long">
+        select tr.name from t_menu tr left join t_role_menu trm  on tr.id=trm.menuid where trm.roleid=#{id}
+    </select>
+
+    <select id="getMenuId" parameterType="long" resultType="java.lang.Integer">
+        select menuid from t_role_menu where roleid=#{id}
+    </select>
+
+    <delete id="deleteRoleMenu" parameterType="long">
+        delete from t_role_menu where roleid=#{id}
+    </delete>
+
+    <insert id="addMenuToRoleList">
+        insert into t_role_menu(roleid,menuid) values
+        <foreach collection="list" item="l" separator=",">
+            (#{l.roleid},#{l.menuid})
+        </foreach>
+    </insert>
+
+</mapper>

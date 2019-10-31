@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.user.UserMapper" >
+    <sql id="Base_Column_List" >
+    id, loginName, password, realName,sex,age,phone,email,pay,jointime,imgurl,errorCount,salt
+  </sql>
+
+    <sql id="search">
+        <where>
+            <if test="loginname!=null and loginname!=''">
+                  loginname like "%"#{loginname}"%"
+            </if>
+            <if test="realname!=null and realname!=''">
+                and  realname like "%"#{realname}"%"
+            </if>
+            <if test="minage>0 and minage!=null ">
+                and  age >=#{minage}
+            </if>
+            <if test="maxage>=minage and maxage!=null ">
+                and  age &lt;=#{maxage}
+            </if>
+            <if test="minpay>0 and minpay!=null ">
+                and  pay >=#{minpay}
+            </if>
+            <if test="maxpay>=minpay and maxpay!=null ">
+                and  pay &lt;=#{maxpay}
+            </if>
+
+            <if test="minJointime!=null">
+                and  jointime >=#{minJointime}
+            </if>
+            <if test="maxJointime>=minJointime and maxJointime!=null">
+                and  jointime &lt;=#{maxJointime}
+            </if>
+            <if test="size>0">
+                and  u.id  in( select  userid  from t_user_role ur where ur.roleid in
+                <foreach collection="list" item="l" open="(" close=")" separator=",">
+                     #{l}
+                </foreach>
+
+                group by userid having count(*)=#{size} )
+            </if>
+            <if test="s1>0 and s1!=null">
+                and  s1 =#{s1}
+            </if>
+            <if test="s2>0 and s2!=null">
+                and  s2 =#{s2}
+            </if>
+            <if test="s3>0 and s3!=null">
+                and  s3 =#{s3}
+            </if>
+        </where>
+    </sql>
+    <insert id="addUser" parameterType="com.fh.po.user.User" >
+        <selectKey order="AFTER" keyProperty="id" resultType="long"  >
+           select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_user (loginname,password,realname,sex,age,phone,email,pay,jointime,roleid,imgurl,salt,s1,s2,s3) values (#{loginname},#{password},#{realname},#{sex},#{age},#{phone},#{email},#{pay},#{jointime},#{ids},#{imgurl},#{salt},#{s1},#{s2},#{s3})
+    </insert>
+
+    <insert id="roleToUser" parameterType="com.fh.po.role2user.RoleToUser">
+        insert into t_user_role(id,userid,roleid) values(#{id},#{userid},#{roleid})
+    </insert>
+
+
+    <select id="queryRoleName" parameterType="long" resultType="string">
+        select tr.name from t_role tr left join t_user_role tu on tr.id =tu.roleid
+        where tu.userid= #{value}
+    </select>
+
+    <select id="findRole" resultType="long" parameterType="long">
+       select roleid from t_user_role where userid=#{id}
+    </select>
+
+    <delete id="deleteUserDeRole" parameterType="long">
+        delete from t_user_role where userid=#{value}
+    </delete>
+
+   <delete id="deleteUser" parameterType="java.lang.Long" >
+
+       delete from t_user where id =#{id}
+   </delete>
+
+    <update id="updateUser" parameterType="com.fh.po.user.User">
+         update t_user <set>
+        <if test="loginname != null" >
+            loginname=#{loginname},
+        </if>
+
+        <if test="realname != null" >
+            realname=#{realname},
+        </if>
+
+        <if test="sex != null" >
+            sex=#{sex},
+        </if>
+        <if test="age != null" >
+            age=#{age},
+        </if>
+        <if test="phone != null" >
+            phone=#{phone},
+        </if>
+        <if test="email != null" >
+            email=#{email},
+        </if>
+        <if test="pay != null" >
+            pay=#{pay},
+        </if>
+        <if test="jointime != null" >
+            jointime=#{jointime},
+        </if>
+        <if test="imgurl != null" >
+            imgurl=#{imgurl},
+        </if>
+        <if test="s1 != null" >
+            s1=#{s1},
+        </if>
+        <if test="s2 != null" >
+            s2=#{s2},
+        </if>
+        <if test="s3 != null" >
+            s3=#{s3}
+        </if>
+
+    </set>
+      where id=#{id}
+    </update>
+
+    <update id="updateUserr" parameterType="com.fh.po.user.User">
+        update t_user set loginTime=#{loginTime},loginCount=#{loginCount},errorCount=#{errorCount} where id=#{id}
+    </update>
+
+    <update id="clearLock">
+        update t_user set errorCount=0 where errorCount>2
+    </update>
+
+
+
+   <select id="goUpdateUser" parameterType="long" resultType="com.fh.po.user.User">
+       select u.id, loginName, password, realName,sex,age,phone,email,pay,jointime,imgurl,errorCount,salt,concat(c1.name,'-->',c2.name,'-->',c3.name)"selName" from t_user u
+        left join t_area c1   on  c1.id =s1
+        left join t_area  c2   on  c2.id=s2
+        left join t_area  c3   on  c3.id=s3
+       where u.id=#{id}
+   </select>
+
+    <select id="queryUserList" resultType="com.fh.po.user.User" parameterType="com.fh.params.user.UserSearchParams">
+
+        select t.* from
+        (select u.id, loginName, password, realName,sex,age,phone,email,pay,jointime,imgurl,errorCount,salt,concat(c1.name,'-->',c2.name,'-->',c3.name)"selName"
+        from t_user u
+        left join t_area c1   on  c1.id =s1
+        left join t_area  c2   on  c2.id=s2
+        left join t_area  c3   on  c3.id=s3
+        <include refid="search"/>
+
+        order by id desc)t Limit #{start},#{length}
+    </select>
+
+    <select id="queryUserCount" resultType="java.lang.Long" parameterType="com.fh.params.user.UserSearchParams">
+
+        select count(*) from t_user u
+        <include refid="search"/>
+    </select>
+
+    <delete id="deltBatch">
+        delete from t_user where id in
+        <foreach collection="list" item="l" open="(" close=")" separator=",">
+            #{l}
+        </foreach>
+    </delete>
+
+    <select id="queryUserByName" parameterType="string" resultType="com.fh.po.user.User">
+        select * from t_user where loginname=#{loginname}
+    </select>
+
+    <select id="querySearchUserList" parameterType="com.fh.params.user.UserSearchParams" resultType="com.fh.po.user.User">
+        select t.* from
+        (select u.id, loginName, password, realName,sex,age,phone,email,pay,jointime,imgurl,errorCount,salt,concat(c1.name,'-->',c2.name,'-->',c3.name)"selName"
+        from t_user u
+        left join t_area c1   on  c1.id =s1
+        left join t_area  c2   on  c2.id=s2
+        left join t_area  c3   on  c3.id=s3
+        <include refid="search"/>
+
+        order by id desc)t
+    </select>
+
+    <update id="updateUserCount"  parameterType="long">
+        update t_user set errorCount=0 where id=#{id}
+    </update>
+
+
+    <select id="queryMenuById" parameterType="long" resultType="com.fh.po.menu.Menu">
+       select  * from t_menu tm where id in(
+      select menuid from t_role_menu where roleid in(
+        select roleid from t_user_role where userid=#{id}
+         ))  and type=1
+
+    </select>
+
+    <select id="queryAllMenu"  resultType="com.fh.po.menu.Menu">
+          select  * from t_menu
+    </select>
+
+    <select id="queryButton" parameterType="long" resultType="com.fh.po.menu.Menu">
+           select * from t_menu tm where id in(
+      select menuid from t_role_menu where roleid in(
+        select roleid from t_user_role where userid=#{id}
+         ))
+    </select>
+
+    <update id="updatePassword" >
+        update t_user set password=#{s} where id=#{id}
+    </update>
+
+    <select id="findUserByEmail" parameterType="string" resultType="com.fh.po.user.User">
+        select * from t_user where email=#{email}
+    </select>
+
+</mapper>

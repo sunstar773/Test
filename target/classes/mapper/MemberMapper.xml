@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.mapper.member.MemberMapper" >
+    <sql id="search">
+        <where>
+            <if test="name!=null and name!=''">
+                m.name like concat("%",#{name},"%")
+            </if>
+          <if test="realname!=null and realname!=''">
+                and  realname like "%"#{realname}"%"
+            </if>
+
+            <if test="minBirthday!=null">
+                and  birthday >=#{minBirthday}
+            </if>
+            <if test=" maxBirthday!=null">
+                and  birthday &lt;=#{maxBirthday}
+            </if>
+            <if test="c1>0 and c1!=null">
+                and  c1 =#{c1}
+            </if>
+            <if test="c2>0 and c2!=null">
+                and  c2 =#{c2}
+            </if>
+            <if test="c3>0 and c3!=null">
+                and  c3 =#{c3}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectCount"  parameterType="com.fh.params.member.MemberSearch" resultType="long">
+        select count(*) from t_member m
+        <include refid="search"></include>
+    </select>
+
+    <select id="queryList" parameterType="com.fh.params.member.MemberSearch" resultType="com.fh.po.member.Member">
+        select t.* from (
+        select m.id,m.name,realname,phone,birthday,m.c1,m.c2,m.c3,concat(s1.name,'-->',s2.name,'-->',s3.name)"areaName"
+        from t_member m
+        left join t_area s1 on s1.id =m.c1
+        left join t_area s2 on s2.id=m.c2
+        left join t_area s3 on s3.id=m.c3
+        <include refid="search"></include>
+        )t
+        limit #{start},#{length}
+    </select>
+</mapper>
